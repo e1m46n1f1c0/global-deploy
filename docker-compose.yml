@@ -10,28 +10,13 @@ services:
       # Filtro para leer solo infraestructura global
       - "--providers.docker.constraints=Label(`traefik.tier`,`global`)"
       - "--entrypoints.web.address=:80"
-      # NUEVO: Redirección global de HTTP a HTTPS
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      # Proveedor de archivos dinámico (Certificados mkcert en local)
-      - "--providers.file.filename=/etc/traefik/dynamic-conf.yml"
-      - "--providers.file.watch=true"
-      # Resolver de Let's Encrypt (Producción / En línea)
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@ideasfarm.com}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "${HTTP_PORT}:80"
       - "${HTTPS_PORT}:443"
       - "${DASHBOARD_PORT}:8080" # Traefik Dashboard (Development only)
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      # Montaje de certificados y configuración
-      - "./certs:/certs:ro"
-      - "./dynamic-conf.yml:/etc/traefik/dynamic-conf.yml:ro"
-      - "./letsencrypt:/letsencrypt"
     networks:
       - global-transit-network
 

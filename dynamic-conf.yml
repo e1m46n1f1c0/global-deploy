@@ -1,9 +1,0 @@
-tls:
-  stores:
-    default:
-      defaultCertificate:
-        certFile: "/certs/ideasfarm.local.crt"
-        keyFile: "/certs/ideasfarm.local.key"
-  certificates:
-    - certFile: "/certs/ideasfarm.local.crt"
-      keyFile: "/certs/ideasfarm.local.key"
