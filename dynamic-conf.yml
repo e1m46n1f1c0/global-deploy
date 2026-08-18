@@ -1,0 +1,19 @@
+http:
+  routers:
+    # Plantilla para sitios antiguos en Apache
+    legacy-apache-router:
+      # REEMPLAZA tus dominios antiguos aquí separados por OR (ej: Host(`dominio1.com`) || Host(`dominio2.com`))
+      # O usa un wildcard si aplican todos los subdominios que no coinciden con otra cosa
+      rule: "Host(`misitio-antiguo.com`, `www.misitio-antiguo.com`)"
+      entryPoints:
+        - web
+        - websecure
+      service: apache-legacy-service
+
+  services:
+    apache-legacy-service:
+      loadBalancer:
+        servers:
+          # host.docker.internal resuelve a la IP del VPS host donde corre Apache
+          - url: "http://host.docker.internal:8080"
+        passHostHeader: true
