@@ -1,6 +1,13 @@
 # Environment files
 .env
+.env.local
 
-# OS files
+# Traefik dynamic certificates & ACME storage
+letsencrypt/
+certs/*.crt
+certs/*.key
+certs/*.pem
+
+# OS & Logs
 .DS_Store
 *.log
