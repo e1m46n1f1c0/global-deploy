@@ -1,4 +1,20 @@
 services:
+  step-ca:
+    image: smallstep/step-ca:latest
+    container_name: global-step-ca
+    restart: always
+    profiles: ["local"]
+    environment:
+      - DOCKER_STEPCA_INIT_NAME=Local-CA
+      - DOCKER_STEPCA_INIT_DNS_NAMES=step-ca,localhost,global-step-ca
+      - DOCKER_STEPCA_INIT_PROVISIONER_NAME=admin@localhost
+      - DOCKER_STEPCA_INIT_PASSWORD=${STEP_CA_PASSWORD:-StepCAPassword123!}
+      - DOCKER_STEPCA_INIT_ACME=true
+    volumes:
+      - step-ca-data:/home/step
+    networks:
+      - global-transit-network
+
   traefik-global:
     image: traefik:v3.6
     container_name: global-traefik-leader
@@ -11,17 +27,26 @@ services:
       - "--providers.docker.constraints=Label(`traefik.tier`,`global`)"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      # Resolver de Let's Encrypt para el entorno global
-      - "--certificatesresolvers.letsencrypt-global.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt-global.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt-global.acme.email=${ACME_EMAIL:-admin@localhost}"
-      - "--certificatesresolvers.letsencrypt-global.acme.storage=/letsencrypt/acme.json"
-      # Proveedor de archivos dinámico (Certificados mkcert en local)
+      - "--entrypoints.websecure.http.tls.certresolver=${CERT_RESOLVER:-local-acme}"
+      # Resolver ACME Local (step-ca para entorno local)
+      - "--certificatesresolvers.local-acme.acme.caserver=https://step-ca:9000/acme/acme/directory"
+      - "--certificatesresolvers.local-acme.acme.httpchallenge=true"
+      - "--certificatesresolvers.local-acme.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.local-acme.acme.email=${ACME_EMAIL:-admin@localhost}"
+      - "--certificatesresolvers.local-acme.acme.storage=/letsencrypt/acme-local.json"
+      - "--serversTransport.insecureSkipVerify=true"
+      # Resolver de Let's Encrypt para el entorno global (Producción)
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@localhost}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Proveedor de archivos dinámico (Certificados dinámicos/locales)
       - "--providers.file.filename=/etc/traefik/dynamic-conf.yml"
       - "--providers.file.watch=true"
     environment:
       - GLOBAL_DOMAIN=${GLOBAL_DOMAIN}
       - TRAEFIK_DASHBOARD_AUTH=${TRAEFIK_DASHBOARD_AUTH}
+      - CERT_RESOLVER=${CERT_RESOLVER:-local-acme}
     ports:
       - "${HTTP_PORT}:80"
       - "${HTTPS_PORT}:443"
@@ -151,7 +176,9 @@ networks:
     internal: true
 
 volumes:
+  step-ca-data:
   openobserve-data:
 
   infisical-pg-data:
   infisical-redis-data:
+

@@ -1,4 +1,4 @@
-.PHONY: setup up down logs
+.PHONY: setup up down logs trust-ca
 
 setup:
 	@echo "Configuring global infrastructure..."
@@ -12,6 +12,14 @@ setup:
 	@echo "Infisical secrets configured in .env."
 	@mkdir -p certs
 	@touch dynamic-conf.yml
+
+trust-ca:
+	@echo "Exportando la Autoridad Certificadora (Root CA) de step-ca a ./certs/root_ca.crt..."
+	@mkdir -p certs
+	@docker cp global-step-ca:/home/step/certs/root_ca.crt ./certs/root_ca.crt 2>/dev/null || true
+	@echo "✅ Certificado raíz exportado en ./certs/root_ca.crt"
+	@echo "Para confiar en la CA en Ubuntu/Debian:"
+	@echo "  sudo cp ./certs/root_ca.crt /usr/local/share/ca-certificates/step-ca.crt && sudo update-ca-certificates"
 
 up:
 	docker compose up -d

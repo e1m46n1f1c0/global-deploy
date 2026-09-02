@@ -31,4 +31,14 @@ http:
     auth-dashboard-global:
       basicAuth:
         users:
-          - "admin:$apr1$W0lcW8DY$6O2IV2AwPfArKCTCu5uE70"
+          - '{{ env "TRAEFIK_DASHBOARD_AUTH" }}'
+
+
+
+
+
+
+tls:
+  certificates:
+    - certFile: "/certs/local-cert.pem"
+      keyFile: "/certs/local-key.pem"
