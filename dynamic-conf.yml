@@ -2,7 +2,7 @@ http:
   routers:
     # Router HTTP (Puerto 80)
     dashboard-global-http:
-      rule: "Host(`traefik.localhost`) || HostRegexp(`^traefik\\..+$`)"
+      rule: 'Host(`traefik.{{ env "GLOBAL_DOMAIN" | default "localhost" }}`)'
       entryPoints:
         - "web"
       service: "api@internal"
@@ -12,15 +12,15 @@ http:
 
     # Router HTTPS (Puerto 443)
     dashboard-global-https:
-      rule: "Host(`traefik.localhost`) || HostRegexp(`^traefik\\..+$`)"
+      rule: 'Host(`traefik.{{ env "GLOBAL_DOMAIN" | default "localhost" }}`)'
       entryPoints:
         - "websecure"
       service: "api@internal"
       middlewares:
         - "redirect-dashboard-global"
         - "auth-dashboard-global"
-      tls: true
-
+      tls:
+        certResolver: '{{ env "CERT_RESOLVER" | default "local-acme" }}'
   middlewares:
     redirect-dashboard-global:
       redirectRegex:
@@ -38,7 +38,4 @@ http:
 
 
 
-tls:
-  certificates:
-    - certFile: "/certs/local-cert.pem"
-      keyFile: "/certs/local-key.pem"
+
