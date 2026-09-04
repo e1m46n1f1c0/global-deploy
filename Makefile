@@ -2,9 +2,6 @@
 
 setup:
 	@echo "Configuring global infrastructure..."
-	@docker network inspect global-transit-network >/dev/null 2>&1 || \
-	docker network create --subnet 10.99.99.0/24 global-transit-network
-	@echo "Network 'global-transit-network' is ready to operate."
 	@[ -f .env ] && echo "The .env file already exists." || cp .env.example .env
 	@grep -q "INFISICAL_ENCRYPTION_KEY=" .env || echo "INFISICAL_ENCRYPTION_KEY=$$(openssl rand -hex 16)" >> .env
 	@grep -q "INFISICAL_AUTH_SECRET=" .env || echo "INFISICAL_AUTH_SECRET=$$(openssl rand -base64 32)" >> .env
@@ -12,9 +9,11 @@ setup:
 	@echo "Infisical secrets configured in .env."
 	@mkdir -p certs
 	@touch dynamic-conf.yml
+	@echo "Setup complete. Please review the .env file."
+	@echo "Remember to update GLOBAL_DOMAIN and ACME_EMAIL for production."
 
 trust-ca:
-	@echo "Exportando la Autoridad Certificadora (Root CA) de step-ca a ./certs/root_ca.crt..."
+	@echo "Obteniendo certificado de step-ca..."
 	@mkdir -p certs
 	@docker cp global-step-ca:/home/step/certs/root_ca.crt ./certs/root_ca.crt 2>/dev/null || true
 	@echo "✅ Certificado raíz exportado en ./certs/root_ca.crt"
@@ -31,11 +30,13 @@ trust-ca:
 	fi
 
 up:
-	@echo "Iniciando step-ca..."
-	docker compose up -d step-ca
-	@echo "Esperando a que step-ca inicie..."
-	@sleep 5
-	@$(MAKE) trust-ca
+	@if grep -q "CERT_RESOLVER=local-acme" .env; then \
+		echo "Entorno local detectado. Iniciando step-ca..."; \
+		docker compose up -d step-ca; \
+		echo "Esperando a que step-ca inicie..."; \
+		sleep 5; \
+		$(MAKE) trust-ca; \
+	fi
 	@echo "Iniciando el resto de los servicios..."
 	docker compose up -d
 
