@@ -10,4 +10,4 @@ certs/*.pem
 
 # OS & Logs
 .DS_Store
-*.log
+*.logdocker-compose.override.yml
