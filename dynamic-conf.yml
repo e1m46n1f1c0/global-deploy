@@ -1,0 +1,41 @@
+http:
+  routers:
+    # Router HTTP (Puerto 80)
+    dashboard-global-http:
+      rule: 'Host(`traefik.{{ env "GLOBAL_DOMAIN" | default "localhost" }}`)'
+      entryPoints:
+        - "web"
+      service: "api@internal"
+      middlewares:
+        - "redirect-dashboard-global"
+        - "auth-dashboard-global"
+
+    # Router HTTPS (Puerto 443)
+    dashboard-global-https:
+      rule: 'Host(`traefik.{{ env "GLOBAL_DOMAIN" | default "localhost" }}`)'
+      entryPoints:
+        - "websecure"
+      service: "api@internal"
+      middlewares:
+        - "redirect-dashboard-global"
+        - "auth-dashboard-global"
+      tls:
+        certResolver: '{{ env "CERT_RESOLVER" | default "local-acme" }}'
+  middlewares:
+    redirect-dashboard-global:
+      redirectRegex:
+        regex: "^(https?://[^/]+)/?$"
+        replacement: "${1}/dashboard/"
+        permanent: true
+
+    auth-dashboard-global:
+      basicAuth:
+        users:
+          - '{{ env "TRAEFIK_DASHBOARD_AUTH" }}'
+
+
+
+
+
+
+
