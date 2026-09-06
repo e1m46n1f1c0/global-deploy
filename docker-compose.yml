@@ -11,10 +11,12 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      # ports: (cuando queremos abrir los puertos a travez de la red publica)
-      #   - "${HTTP_PORT}:80"
-      #   - "${HTTPS_PORT}:443"
-      - "8080:8080" # Traefik Dashboard (cierra los puertos cuando usamos el tunel de cloudflare)
+      # (Estos puertos se usaban cuando exponíamos la red pública)
+    # ports: 
+    #   - "${HTTP_PORT}:80"
+    #   - "${HTTPS_PORT}:443"
+    ports:
+      - "8080:8080" # Traefik Dashboard (Development only)
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
