@@ -187,6 +187,30 @@ services:
     networks:
       - global-transit-network
 
+  cloudflared-ext1:
+    image: cloudflare/cloudflared:latest
+    container_name: global-cloudflared-ext1
+    restart: always
+    profiles:
+      - tunnel-ext1
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN_EXT1}
+    networks:
+      - global-transit-network
+
+  cloudflared-ext2:
+    image: cloudflare/cloudflared:latest
+    container_name: global-cloudflared-ext2
+    restart: always
+    profiles:
+      - tunnel-ext2
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN_EXT2}
+    networks:
+      - global-transit-network
+
 networks:
   global-transit-network:
     name: global-transit-network
